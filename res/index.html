@@ -1,0 +1,84 @@
+<html>
+	<script type="text/javascript">
+
+	var currentKey;
+
+	function httpGetAsync(theUrl, callback)
+	{
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.onreadystatechange = function() { 
+			if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+				callback(xmlHttp.responseText);
+		}
+		xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+		xmlHttp.send(null);
+	}
+
+	function displayResponse(response) {
+		document.getElementById("status").innerHTML = response;
+	}
+
+	document.addEventListener('keydown', (event) => {
+		const keyName = event.key;
+		const keyCode = event.keyCode;
+
+		if (currentKey == keyCode) {
+			return;
+		}
+
+		var result = "";
+
+		switch (keyCode) {
+			case 38:
+				//Forward
+				httpGetAsync("/f", displayResponse)
+				break;
+			case 40:
+				//Back
+				httpGetAsync("/b", displayResponse)
+				break;
+			case 39:
+				//Right
+				httpGetAsync("/r", displayResponse)
+				break;
+			case 37:
+				//Left
+				httpGetAsync("/l", displayResponse)
+				break;
+		}
+
+		currentKey = keyCode;
+
+		//document.getElementById("status").innerHTML = keyName + " " + keyCode;
+	}, false)
+	
+	document.addEventListener('keyup', (event) => {
+		const keyName = event.key;
+		const keyCode = event.keyCode;
+
+		httpGetAsync("/s", displayResponse);
+
+		//document.getElementById("status").innerHTML = "Stop";
+		currentKey = "";
+	}, false)
+
+	/*
+	function myKeyPress(e){
+		var keynum;
+
+		if(window.event) { // IE                    
+			keynum = e.keyCode;
+		} else if(e.which){ // Netscape/Firefox/Opera                   
+			keynum = e.which;
+		}
+		document.getElementById("status").innerHTML = keynum;
+	}
+	*/
+	</script>
+
+	<body>
+		<div id="status">Status</div>
+		<img id="browser_video" class="video-image" alt="video" src="http://192.168.1.11:8080/video">
+	</body>
+</html>
+
