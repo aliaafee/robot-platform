@@ -2,7 +2,7 @@
 
 RobotDriver::RobotDriver()
 {
-  deviceID = 1;
+  deviceID = 4;
   commandLength = 10;
   command = "";
   response = "";
@@ -16,23 +16,64 @@ RobotDriver::RobotDriver()
   AIN1 = 7;
   AIN2 = 6;
   PWMA = 5;
-  
+
+  BINT = 3;
+  AINT = 2;
+
+  counterA = 0;
+  counterB = 0;
 
   motorLinearSpeed = 75;
   motorTurnSpeed = 100;
 
 }
 
-bool RobotDriver::readLine()
+RobotDriver* RobotDriver::driver = 0;
+
+void RobotDriver::ISR_updateA()
 {
-  while (Serial.available()) {
-    char lastByte = Serial.read();
-    if (lastByte == '\n') {
-      return true;
-    }
-    command += String(lastByte);
+  driver->counterA++;
+}
+
+void RobotDriver::ISR_updateB()
+{
+  driver->counterB++;
+}
+
+void RobotDriver::I2C_recieveEvent(int howMany)
+{
+  String command = "";
+  while(Wire.available())
+  {
+    char c = Wire.read();
+    command += String(c);
   }
-  return false;
+  driver->I2C_ProcessCommand(command);
+}
+
+void RobotDriver::I2C_requestEvent()
+{
+  driver->I2C_SendStatus();
+}
+
+void RobotDriver::I2C_SendStatus()
+{
+  Wire.write(char(state));
+}
+
+void RobotDriver::I2C_ProcessCommand(String command)
+{
+  //Do something with the command
+  switch (command[0])
+  {
+  case CMD_STOP:
+    stopMotor(MOTOR_A);
+    stopMotor(MOTOR_B);
+    break;
+  
+  default:
+    break;
+  }
 }
 
 void RobotDriver::setup()
@@ -46,103 +87,42 @@ void RobotDriver::setup()
   pinMode(PWMB, OUTPUT);
   pinMode(BIN1, OUTPUT);
   pinMode(BIN2, OUTPUT);
+
+  counterA = 0;
+  counterB = 0;
+
+  driver = this;
+
+  attachInterrupt(digitalPinToInterrupt(AINT), RobotDriver::ISR_updateA, RISING);
+  attachInterrupt(digitalPinToInterrupt(BINT), RobotDriver::ISR_updateB, RISING);
   
-  Serial.begin(9600);
+  Wire.begin(deviceID);
+
+  state = STATE_STOPPED;
+  error = ERROR_NONE;
 }
 
-bool RobotDriver::processCommand()
+void RobotDriver::moveForward(int steps, int speed)
 {
-  String msg;
-  
-  response = "R";
-  
-  switch (command[0]) {
-    case 'f':
-      setMotor(0, motorLinearSpeed, 1);
-      setMotor(1, motorLinearSpeed, 1);
-      break;
-      
-    case 'b':
-      setMotor(0, motorLinearSpeed, 0);
-      setMotor(1, motorLinearSpeed, 0);
-      break;
-      
-    case 'r':
-      setMotor(0, motorTurnSpeed, 1);
-      setMotor(1, motorTurnSpeed, 0);
-      break;
-      
-    case 'l':
-      setMotor(0, motorTurnSpeed, 0);
-      setMotor(1, motorTurnSpeed, 1);
-      break;
-      
-    case 's':
-      setMotor(0, 0, 0);
-      setMotor(1, 0, 0);
-      break;
+  state = STATE_FOWARD_STEPS;
 
-    case 'm':
-      msg = command.substring(1);
-      Serial.print(msg);
-      
-    case 'd':
-      /* Set Differential Speed
-       *  0 - d
-       *  1 - right wheel direction 1 forward, 0 back
-       *  2 - right wheel speed 0-255
-       *  3 - left wheel direction 1 forward, 0 back
-       *  4 - left wheel speed 0-255
-       */
-      if (command.length() != 5) {
-        return false;
-      }
-      int rd,rs,ld,ls;
-      
-      rd = (int(char(command[1])) == 0) ? 0 : 1;
-      rs = int(char(command[2]));
-      ld = (int(char(command[3])) == 0) ? 0 : 1;
-      ls = int(char(command[4]));
+  counterA = 0;
+  counterB = 0;
 
-      setMotor(0, ls, ld);
-      setMotor(1, rs, rd);
-
-      response += " ";
-      response += String(rd);
-      response += " ";
-      response += String(rs);
-      response += " ";
-      response += String(ld);
-      response += " ";
-      response += String(ls);
-      break;
-
-    case 'c':
-      /* read collision detection sensor */
-
-      int v;
-      v = analogRead(0);
-
-      response += " ";
-      response += String(v);
-      
-    default:
-      return false;
-  }
-
-  return true;
+  targetStepsA = steps;
+  targetStepsB = steps;
 }
 
 
-bool RobotDriver::sendResponse()
+void RobotDriver::moveBackward(int steps, int speed)
 {
-  response += " ";
-  response += command;
-  response += " ";
-  response += String(millis());
-  
-  Serial.println(response);
-  return 0;
+  state = STATE_BACKWARD_STEPS;
+
+  counterA = 0;
+  counterB = 0;
+
+  targetStepsA = steps;
+  targetStepsB = steps;
 }
 
 
@@ -152,12 +132,12 @@ void RobotDriver::setMotor(int motor, int speed, int direction) {
   boolean inPin1 = LOW;
   boolean inPin2 = HIGH;
 
-  if (direction == 1) {
+  if (direction == FORWARD) {
     inPin1 = HIGH;
     inPin2 = LOW;
   }
 
-  if (motor == 1) {
+  if (motor == MOTOR_B) {
     digitalWrite(BIN1, inPin1);
     digitalWrite(BIN2, inPin2);
     analogWrite(PWMB, speed);
@@ -168,33 +148,70 @@ void RobotDriver::setMotor(int motor, int speed, int direction) {
   }
 }
 
+void RobotDriver::stopMotor(int motor)
+{
+  if (motor == MOTOR_B) {
+    digitalWrite(BIN1, LOW);
+    digitalWrite(BIN2, LOW);
+    analogWrite(PWMB, 0);
+  } else {
+    digitalWrite(AIN1, LOW);
+    digitalWrite(AIN2, LOW);
+    analogWrite(PWMA, 0);
+  }
+}
+
+
+void RobotDriver::collisionDetect()
+{
+  //Collision detenction
+  //If collision, halt and set error variable to appropriate error state
+}
+
 
 void RobotDriver::loop()
 {
-  if (Serial.available() > 0) {
-    if (readLine()) {
-      bool result = processCommand();
-      if (result == false) {
-        response += " ER";
-      } else {
-        response += " OK";
-      }
-      sendResponse();
-      command = "";
+  collisionDetect();
+
+  switch (state)
+  {
+  case STATE_FOWARD:
+    setMotor(MOTOR_A, motorLinearSpeed, FORWARD);
+    setMotor(MOTOR_B, motorLinearSpeed, FORWARD);
+    break;
+  case STATE_FOWARD_STEPS:
+    if (targetStepsA < counterA && targetStepsB < counterB) {
+      setMotor(MOTOR_A, motorLinearSpeed, FORWARD);
+      setMotor(MOTOR_B, motorLinearSpeed, FORWARD);
+    } else {
+      targetStepsA = 0;
+      targetStepsB = 0;
+      state = STATE_STOPPED;
+      stopMotor(MOTOR_A);
+      stopMotor(MOTOR_B);
     }
+    break;
+  case STATE_BACKWARD:
+    setMotor(MOTOR_A, motorLinearSpeed, BACKWARD);
+    setMotor(MOTOR_B, motorLinearSpeed, BACKWARD);
+    break;
+  case STATE_BACKWARD_STEPS:
+    if (targetStepsA < counterA && targetStepsB < counterB) {
+      setMotor(MOTOR_A, motorLinearSpeed, BACKWARD);
+      setMotor(MOTOR_B, motorLinearSpeed, BACKWARD);
+    } else {
+      targetStepsA = 0;
+      targetStepsB = 0;
+      state = STATE_STOPPED;
+      stopMotor(MOTOR_A);
+      stopMotor(MOTOR_B);
+    }
+    break;
+  case STATE_STOPPED:
+  default:
+    stopMotor(MOTOR_A);
+    stopMotor(MOTOR_B);
+    break;
   }
-
-  //Autonomous behaviour here, eg: collision detection etc.
-
-  //Collision detenction
-  /*
-  int v;
-  v = analogRead(0);
-
-  if (v < 800) {
-    setMotor(0, 0, 0);
-    setMotor(1, 0, 0);
-  }
-  */
 }
 
