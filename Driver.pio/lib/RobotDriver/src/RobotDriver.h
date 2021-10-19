@@ -35,11 +35,7 @@ class RobotDriver
     void moveBackward(int steps, int speed);
     
   protected:
-    String command;
-    String previousCommand;
-    String response;
     int deviceID;
-    int commandLength;
 
     int state;
     int error;
@@ -67,7 +63,9 @@ class RobotDriver
     void setMotor(int motor, int speed, int direction);
     void stopMotor(int motor);
 
+    void readSensors();
     void collisionDetect();
+    void updateState();
 
   private:
     static RobotDriver* driver;

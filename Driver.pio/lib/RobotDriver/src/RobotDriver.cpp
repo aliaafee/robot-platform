@@ -3,9 +3,6 @@
 RobotDriver::RobotDriver()
 {
   deviceID = 4;
-  commandLength = 10;
-  command = "";
-  response = "";
 
   PWMB = 11;
   BIN2 = 10;
@@ -162,17 +159,21 @@ void RobotDriver::stopMotor(int motor)
 }
 
 
+void RobotDriver::readSensors()
+{
+  //Read all sensors
+}
+
+
 void RobotDriver::collisionDetect()
 {
-  //Collision detenction
+  //Collision detection, based on current sensor readings
   //If collision, halt and set error variable to appropriate error state
 }
 
 
-void RobotDriver::loop()
+void RobotDriver::updateState()
 {
-  collisionDetect();
-
   switch (state)
   {
   case STATE_FOWARD:
@@ -213,5 +214,15 @@ void RobotDriver::loop()
     stopMotor(MOTOR_B);
     break;
   }
+}
+
+
+void RobotDriver::loop()
+{
+  readSensors();
+
+  collisionDetect();
+
+  updateState();
 }
 
