@@ -2,6 +2,8 @@
 
 Firmware for robot driver.
 
+TODO: Implement this as a finite state machine.
+
 ## Functions
 
 Robot driver recieves commands over I2C bus(acts as I2C slave).
