@@ -3,6 +3,7 @@
 Firmware for robot driver.
 
 TODO: Implement this as a finite state machine.
+see http://robotics.sk/go/FSM/finite-state-automata.pdf
 
 ## Functions
 
