@@ -19,7 +19,7 @@ U 1 1 618CB622
 P 9550 950
 F 0 "H1" H 9650 996 50  0000 L CNN
 F 1 "MountingHole" H 9650 905 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9550 950 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_DIN965_Pad" H 9550 950 50  0001 C CNN
 F 3 "~" H 9550 950 50  0001 C CNN
 	1    9550 950 
 	1    0    0    -1  
@@ -30,7 +30,7 @@ U 1 1 618E4922
 P 9550 1350
 F 0 "H2" H 9650 1396 50  0000 L CNN
 F 1 "MountingHole" H 9650 1305 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9550 1350 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_DIN965_Pad" H 9550 1350 50  0001 C CNN
 F 3 "~" H 9550 1350 50  0001 C CNN
 	1    9550 1350
 	1    0    0    -1  
@@ -41,7 +41,7 @@ U 1 1 618E5159
 P 9550 1700
 F 0 "H3" H 9650 1746 50  0000 L CNN
 F 1 "MountingHole" H 9650 1655 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9550 1700 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_DIN965_Pad" H 9550 1700 50  0001 C CNN
 F 3 "~" H 9550 1700 50  0001 C CNN
 	1    9550 1700
 	1    0    0    -1  
@@ -52,7 +52,7 @@ U 1 1 618E5809
 P 9550 2100
 F 0 "H4" H 9650 2146 50  0000 L CNN
 F 1 "MountingHole" H 9650 2055 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.5mm" H 9550 2100 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_DIN965_Pad" H 9550 2100 50  0001 C CNN
 F 3 "~" H 9550 2100 50  0001 C CNN
 	1    9550 2100
 	1    0    0    -1  
@@ -977,7 +977,7 @@ U 1 1 622302DA
 P 5950 7000
 F 0 "J6" H 6000 7200 50  0000 C CNN
 F 1 "ATMega AnalogPins" H 6000 6750 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 5950 7000 50  0001 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical" H 5950 7000 50  0001 C CNN
 F 3 "~" H 5950 7000 50  0001 C CNN
 	1    5950 7000
 	1    0    0    -1  
@@ -1153,4 +1153,161 @@ Text GLabel 10450 3550 2    50   Input ~ 0
 SDA
 Text GLabel 10450 3650 2    50   Input ~ 0
 SCL
+$Comp
+L Regulator_Switching:LM2596S-5 U4
+U 1 1 617ECBF6
+P 2300 -2650
+F 0 "U4" H 2300 -2283 50  0000 C CNN
+F 1 "LM2596S-5" H 2300 -2374 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:TO-263-5_TabPin3" H 2350 -2900 50  0001 L CIN
+F 3 "http://www.ti.com/lit/ds/symlink/lm2596.pdf" H 2300 -2650 50  0001 C CNN
+	1    2300 -2650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C12
+U 1 1 617F2816
+P 1400 -2600
+F 0 "C12" H 1100 -2550 50  0000 L CNN
+F 1 "100uF" H 1050 -2650 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 1438 -2750 50  0001 C CNN
+F 3 "~" H 1400 -2600 50  0001 C CNN
+	1    1400 -2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Diode:1N5822 D3
+U 1 1 617F7720
+P 3000 -2400
+F 0 "D3" V 3050 -2300 50  0000 L CNN
+F 1 "1N5822" V 3150 -2300 50  0000 L CNN
+F 2 "Diode_THT:D_DO-201AD_P15.24mm_Horizontal" H 3000 -2575 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88526/1n5820.pdf" H 3000 -2400 50  0001 C CNN
+	1    3000 -2400
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:L L1
+U 1 1 617FB4B7
+P 3350 -2550
+F 0 "L1" V 3250 -2550 50  0000 C CNN
+F 1 "33uH" V 3450 -2550 50  0000 C CNN
+F 2 "Inductor_THT:L_Radial_D8.7mm_P5.00mm_Fastron_07HCP" H 3350 -2550 50  0001 C CNN
+F 3 "~" H 3350 -2550 50  0001 C CNN
+	1    3350 -2550
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:CP C13
+U 1 1 617FDF61
+P 3750 -2400
+F 0 "C13" H 3868 -2354 50  0000 L CNN
+F 1 "220uf" H 3868 -2445 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D5.0mm_P2.50mm" H 3788 -2550 50  0001 C CNN
+F 3 "~" H 3750 -2400 50  0001 C CNN
+	1    3750 -2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2800 -2550 3000 -2550
+Wire Wire Line
+	3000 -2550 3200 -2550
+Connection ~ 3000 -2550
+Wire Wire Line
+	3500 -2550 3750 -2550
+Wire Wire Line
+	3750 -2550 4150 -2550
+Wire Wire Line
+	4150 -2550 4150 -2700
+Connection ~ 3750 -2550
+$Comp
+L power:+5V #PWR0108
+U 1 1 61810B8B
+P 4150 -2700
+F 0 "#PWR0108" H 4150 -2850 50  0001 C CNN
+F 1 "+5V" H 4165 -2527 50  0000 C CNN
+F 2 "" H 4150 -2700 50  0001 C CNN
+F 3 "" H 4150 -2700 50  0001 C CNN
+	1    4150 -2700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 -2550 3750 -2750
+Wire Wire Line
+	3750 -2750 2800 -2750
+Wire Wire Line
+	1100 -2750 1400 -2750
+Connection ~ 1400 -2750
+$Comp
+L power:GND #PWR0109
+U 1 1 6181C2EE
+P 2300 -2350
+F 0 "#PWR0109" H 2300 -2600 50  0001 C CNN
+F 1 "GND" H 2305 -2523 50  0000 C CNN
+F 2 "" H 2300 -2350 50  0001 C CNN
+F 3 "" H 2300 -2350 50  0001 C CNN
+	1    2300 -2350
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0110
+U 1 1 6181C675
+P 3750 -2250
+F 0 "#PWR0110" H 3750 -2500 50  0001 C CNN
+F 1 "GND" H 3755 -2423 50  0000 C CNN
+F 2 "" H 3750 -2250 50  0001 C CNN
+F 3 "" H 3750 -2250 50  0001 C CNN
+	1    3750 -2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0111
+U 1 1 6181CD38
+P 3000 -2250
+F 0 "#PWR0111" H 3000 -2500 50  0001 C CNN
+F 1 "GND" H 3005 -2423 50  0000 C CNN
+F 2 "" H 3000 -2250 50  0001 C CNN
+F 3 "" H 3000 -2250 50  0001 C CNN
+	1    3000 -2250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0112
+U 1 1 6181D33C
+P 1400 -2450
+F 0 "#PWR0112" H 1400 -2700 50  0001 C CNN
+F 1 "GND" H 1405 -2623 50  0000 C CNN
+F 2 "" H 1400 -2450 50  0001 C CNN
+F 3 "" H 1400 -2450 50  0001 C CNN
+	1    1400 -2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+9V #PWR0113
+U 1 1 6181ECAE
+P 1100 -2750
+F 0 "#PWR0113" H 1100 -2900 50  0001 C CNN
+F 1 "+9V" H 1115 -2577 50  0000 C CNN
+F 2 "" H 1100 -2750 50  0001 C CNN
+F 3 "" H 1100 -2750 50  0001 C CNN
+	1    1100 -2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 -2750 1800 -2750
+$Comp
+L power:GND #PWR0114
+U 1 1 61829011
+P 1750 -2350
+F 0 "#PWR0114" H 1750 -2600 50  0001 C CNN
+F 1 "GND" H 1755 -2523 50  0000 C CNN
+F 2 "" H 1750 -2350 50  0001 C CNN
+F 3 "" H 1750 -2350 50  0001 C CNN
+	1    1750 -2350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1800 -2550 1750 -2550
+Wire Wire Line
+	1750 -2550 1750 -2350
 $EndSCHEMATC
