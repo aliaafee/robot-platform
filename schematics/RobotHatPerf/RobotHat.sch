@@ -1382,4 +1382,245 @@ Wire Wire Line
 	3450 7100 4100 7100
 Wire Wire Line
 	3450 7000 4100 7000
+$Comp
+L power:+9V #PWR?
+U 1 1 6187F288
+P -1500 400
+F 0 "#PWR?" H -1500 250 50  0001 C CNN
+F 1 "+9V" H -1485 573 50  0000 C CNN
+F 2 "" H -1500 400 50  0001 C CNN
+F 3 "" H -1500 400 50  0001 C CNN
+	1    -1500 400 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Barrel_Jack J?
+U 1 1 61883311
+P -6700 1500
+F 0 "J?" H -6643 1825 50  0000 C CNN
+F 1 "Barrel_Jack" H -6643 1734 50  0000 C CNN
+F 2 "" H -6650 1460 50  0001 C CNN
+F 3 "~" H -6650 1460 50  0001 C CNN
+	1    -6700 1500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 6188445D
+P -6350 1800
+F 0 "#PWR?" H -6350 1550 50  0001 C CNN
+F 1 "GND" H -6345 1627 50  0000 C CNN
+F 2 "" H -6350 1800 50  0001 C CNN
+F 3 "" H -6350 1800 50  0001 C CNN
+	1    -6350 1800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-6400 1600 -6350 1600
+Wire Wire Line
+	-6350 1600 -6350 1800
+$Comp
+L MySymbols:TP5100_Carging_Module U?
+U 1 1 6188985B
+P -5650 1550
+F 0 "U?" H -5625 1965 50  0000 C CNN
+F 1 "TP5100_Carging_Module" H -5625 1874 50  0000 C CNN
+F 2 "" H -5650 1550 50  0001 C CNN
+F 3 "" H -5650 1550 50  0001 C CNN
+	1    -5650 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-6400 1400 -6250 1400
+$Comp
+L Device:Battery_Cell BT?
+U 1 1 6188D4E0
+P -4850 2300
+F 0 "BT?" H -4732 2396 50  0000 L CNN
+F 1 "18650" H -4732 2305 50  0000 L CNN
+F 2 "" V -4850 2360 50  0001 C CNN
+F 3 "~" V -4850 2360 50  0001 C CNN
+	1    -4850 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Battery_Cell BT?
+U 1 1 6188DB9D
+P -4850 2900
+F 0 "BT?" H -4732 2996 50  0000 L CNN
+F 1 "18650" H -4732 2905 50  0000 L CNN
+F 2 "" V -4850 2960 50  0001 C CNN
+F 3 "~" V -4850 2960 50  0001 C CNN
+	1    -4850 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L MySymbols:BMS_18650_2S_Module U?
+U 1 1 618A54F5
+P -3800 2500
+F 0 "U?" H -3800 2925 50  0000 C CNN
+F 1 "BMS_18650_2S_Module" H -3800 2150 50  0000 C CNN
+F 2 "" H -3800 2500 50  0001 C CNN
+F 3 "" H -3800 2500 50  0001 C CNN
+	1    -3800 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-4850 2100 -4350 2100
+Wire Wire Line
+	-4350 2100 -4350 2300
+Wire Wire Line
+	-4350 2300 -4100 2300
+Wire Wire Line
+	-4850 3000 -4350 3000
+Wire Wire Line
+	-4350 3000 -4350 2700
+Wire Wire Line
+	-4350 2700 -4100 2700
+Wire Wire Line
+	-4850 2400 -4850 2500
+Wire Wire Line
+	-4100 2500 -4850 2500
+Connection ~ -4850 2500
+Wire Wire Line
+	-4850 2500 -4850 2700
+Wire Wire Line
+	-3500 2300 -3500 1400
+Wire Wire Line
+	-3500 1400 -5250 1400
+Wire Wire Line
+	-3500 1400 -3100 1400
+Connection ~ -3500 1400
+Wire Wire Line
+	-6250 1400 -6250 400 
+Wire Wire Line
+	-6250 400  -3900 400 
+Wire Wire Line
+	-2900 400  -2900 1100
+Connection ~ -6250 1400
+Wire Wire Line
+	-6250 1400 -6000 1400
+Wire Wire Line
+	-1500 1400 -1500 400 
+Wire Wire Line
+	-2900 400  -2400 400 
+Connection ~ -2900 400 
+Wire Wire Line
+	-2100 400  -1500 400 
+Connection ~ -1500 400 
+Wire Wire Line
+	-3500 2700 -3250 2700
+Wire Wire Line
+	-3250 2700 -3250 3050
+$Comp
+L power:GND #PWR?
+U 1 1 6190348A
+P -3250 3050
+F 0 "#PWR?" H -3250 2800 50  0001 C CNN
+F 1 "GND" H -3245 2877 50  0000 C CNN
+F 2 "" H -3250 3050 50  0001 C CNN
+F 3 "" H -3250 3050 50  0001 C CNN
+	1    -3250 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 61903BBE
+P -5650 2000
+F 0 "#PWR?" H -5650 1750 50  0001 C CNN
+F 1 "GND" H -5645 1827 50  0000 C CNN
+F 2 "" H -5650 2000 50  0001 C CNN
+F 3 "" H -5650 2000 50  0001 C CNN
+	1    -5650 2000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	-6000 1700 -6000 2000
+Wire Wire Line
+	-6000 2000 -5650 2000
+Wire Wire Line
+	-5250 1700 -5250 2000
+Wire Wire Line
+	-5250 2000 -5650 2000
+Connection ~ -5650 2000
+Wire Wire Line
+	-3900 400  -3900 550 
+Connection ~ -3900 400 
+Wire Wire Line
+	-3900 400  -2900 400 
+$Comp
+L Device:R R?
+U 1 1 61919E0D
+P -3900 700
+F 0 "R?" H -3830 746 50  0000 L CNN
+F 1 "10k" H -3830 655 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric" V -3970 700 50  0001 C CNN
+F 3 "~" H -3900 700 50  0001 C CNN
+F 4 "C17724" H -3900 700 50  0001 C CNN "Part"
+	1    -3900 700 
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 6191E60D
+P -3900 850
+F 0 "#PWR?" H -3900 600 50  0001 C CNN
+F 1 "GND" H -3895 677 50  0000 C CNN
+F 2 "" H -3900 850 50  0001 C CNN
+F 3 "" H -3900 850 50  0001 C CNN
+	1    -3900 850 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Diode:1N5822 D?
+U 1 1 61922EB5
+P -2250 400
+F 0 "D?" H -2300 550 50  0000 L CNN
+F 1 "SS34" H -2350 250 50  0000 L CNN
+F 2 "RobotHat:SS34" H -2250 225 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88526/1n5820.pdf" H -2250 400 50  0001 C CNN
+F 4 "C8678" V -2250 400 50  0001 C CNN "Part"
+	1    -2250 400 
+	-1   0    0    1   
+$EndComp
+$Comp
+L Transistor_FET:AO3401A Q?
+U 1 1 6192E668
+P -2900 1300
+F 0 "Q?" V -2558 1300 50  0000 C CNN
+F 1 "AO3401A" V -2649 1300 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H -2700 1225 50  0001 L CIN
+F 3 "http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf" H -2900 1300 50  0001 L CNN
+F 4 "C15127" V -2900 1300 50  0001 C CNN "Part"
+	1    -2900 1300
+	0    1    1    0   
+$EndComp
+$Comp
+L Diode:1N5822 D?
+U 1 1 619616C7
+P -2200 1400
+F 0 "D?" H -2250 1550 50  0000 L CNN
+F 1 "SS34" H -2300 1250 50  0000 L CNN
+F 2 "RobotHat:SS34" H -2200 1225 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88526/1n5820.pdf" H -2200 1400 50  0001 C CNN
+F 4 "C8678" V -2200 1400 50  0001 C CNN "Part"
+	1    -2200 1400
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	-2700 1400 -2350 1400
+Wire Wire Line
+	-2050 1400 -1500 1400
+Wire Notes Line
+	-900 0    -900 3450
+Wire Notes Line
+	-900 3450 -7500 3450
+Wire Notes Line
+	-7500 3450 -7500 0   
+Wire Notes Line
+	-7500 0    -900 0   
+Text Notes -7350 200  0    50   ~ 0
+Battery Charging/Discharging Circuite
+Text Notes -2700 1800 0    50   ~ 0
+This is to prevent backflow into battery when \nexternal plugged in\n
 $EndSCHEMATC
