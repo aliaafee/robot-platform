@@ -1,4 +1,4 @@
-19977935577546974
+19981208133046974
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -58667,6 +58667,13 @@ Mounting 4.5mm 9774100982
 8
 1
 MyFootprints
+CSTCE16M0V53-R0
+
+
+0
+3
+3
+MyFootprints
 TB6612FNG_Breakout
 
 
@@ -58679,6 +58686,13 @@ TS-1187A-B-A-B_PushButton
 
 0
 4
+2
+MyFootprints
+YPRH1207-330M
+
+
+0
+2
 2
 NetTie
 NetTie-2_SMD_Pad0.5mm
