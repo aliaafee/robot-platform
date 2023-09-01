@@ -1,10 +1,15 @@
 #include "motor-speed-controller.h"
 
-MotorSpeedController::MotorSpeedController(uint8_t inPin1, uint8_t inPin2, uint8_t pwmPin)
+MotorSpeedController::MotorSpeedController(uint8_t inPin1, uint8_t inPin2, uint8_t pwmPin, uint8_t encoderPin1, uint8_t encoderPin2)
 {
     inPin1_ = inPin1;
     inPin2_ = inPin2;
     pwmPin_ = pwmPin;
+
+    encoderPin1_ = encoderPin1;
+    encoderPin2_ = encoderPin2;
+
+    encoder_ = new Encoder(encoderPin1_, encoderPin2_);
 
     Kp_ = 20;
     Kd_ = 12;
@@ -21,47 +26,31 @@ void MotorSpeedController::setup()
     pinMode(inPin2_, OUTPUT);
     pinMode(pwmPin_, OUTPUT);
 
-    interruptCounter_ = 0;
     prevCount_ = 0;
     currentSpeed_ = 0;
-
-    direction_ = FORWARD;
 }
 
 void MotorSpeedController::loop()
 {
-    currentSpeed_ = interruptCounter_ - prevCount_;
+    currentSpeed_ = encoder_->read() - prevCount_;
 
-    prevCount_ = interruptCounter_;
+    prevCount_ = encoder_->read();
 
     if (pidControl_)
     {
         doPID();
     }
 }
-void MotorSpeedController::incrementInterrupt()
-{
-    interruptCounter_ += 1;
-}
 
 void MotorSpeedController::setPIDSpeed(int speed)
 {
     pidControl_ = true;
     resetPID();
-    if (speed < 0)
-    {
-        setDirection(BACKWARD);
-    }
-    else
-    {
-        setDirection(FORWARD);
-    }
-    targetSpeed_ = abs(speed);
+    targetSpeed_ = speed;
 }
 
 void MotorSpeedController::setPWMSpeed(int pwm)
 {
-    pidControl_ = false;
     if (pwm < 0)
     {
         setDirection(BACKWARD);
@@ -83,7 +72,12 @@ void MotorSpeedController::stop()
 
 int MotorSpeedController::getCurrentSpeed()
 {
-    return direction_ == FORWARD ? currentSpeed_ : -currentSpeed_;
+    return currentSpeed_;
+}
+
+long MotorSpeedController::getCurrentPosition()
+{
+    return encoder_->read();
 }
 
 void MotorSpeedController::updatePIDParameters(int Kp, int Kd, int Ki, int Ko)
@@ -117,7 +111,7 @@ void MotorSpeedController::doPID()
     {
         output = MAX_PWM;
     }
-    else if (output <= 0)
+    else if (output <= MIN_PWM)
     {
         output = 0;
     }
@@ -129,7 +123,7 @@ void MotorSpeedController::doPID()
     pidOutput_ = output;
     prevInput_ = input;
 
-    setPWM(pidOutput_);
+    setPWMSpeed(pidOutput_);
 }
 
 void MotorSpeedController::setPWM(uint8_t pwm)
@@ -139,14 +133,14 @@ void MotorSpeedController::setPWM(uint8_t pwm)
 
 void MotorSpeedController::setDirection(bool direction)
 {
-    direction_ = direction;
-    if (direction == FORWARD)
+    if (direction)
     {
-        digitalWrite(inPin1_, HIGH);
-        digitalWrite(inPin2_, LOW);
+
+        digitalWrite(inPin1_, LOW);
+        digitalWrite(inPin2_, HIGH);
         return;
     }
 
-    digitalWrite(inPin1_, LOW);
-    digitalWrite(inPin2_, HIGH);
+    digitalWrite(inPin1_, HIGH);
+    digitalWrite(inPin2_, LOW);
 }

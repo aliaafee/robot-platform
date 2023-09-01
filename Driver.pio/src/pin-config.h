@@ -13,7 +13,11 @@
 #define AIN2 6
 #define PWMA 5
 
-#define BINT 3
-#define AINT 2
+
+#define AENC1 2
+#define AENC2 12
+
+#define BENC1 3
+#define BENC2 13
 
 #endif

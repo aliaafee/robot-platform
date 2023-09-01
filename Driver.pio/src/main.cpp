@@ -4,20 +4,17 @@
 
 #include "pin-config.h"
 
-MotorSpeedController motorA(AIN1, AIN2, PWMA);
-MotorSpeedController motorB(BIN1, BIN2, PWMB);
+#define FRAME_INTERVAL 30
+#define EPISODE_INTERVAL 5000
+#define DEBUG_INTERVAL 30
 
-volatile unsigned long a_count=0;
+MotorSpeedController motorA(AIN1, AIN2, PWMA, AENC1, AENC2);
+MotorSpeedController motorB(BIN1, BIN2, PWMB, BENC1, BENC2);
 
-void ISR_updateA()
-{
-  motorA.incrementInterrupt();
-}
-
-void ISR_updateB()
-{
-  motorB.incrementInterrupt();
-}
+unsigned long now;
+unsigned long frame_time;
+unsigned long episode_time;
+unsigned long debug_time;
 
 void setup()
 {
@@ -35,32 +32,57 @@ void setup()
   motorA.stop();
   motorB.stop();
 
-  // Attach motor interrupt pin
-  attachInterrupt(digitalPinToInterrupt(AINT), ISR_updateA, RISING);
-  attachInterrupt(digitalPinToInterrupt(BINT), ISR_updateB, RISING);
-
   // motorB.setPWMSpeed(100);
-  //motorA.setPWMSpeed(100);
-  motorA.setPIDSpeed(-20);
-  motorB.setPIDSpeed(-20);
+  // motorA.setPWMSpeed(100);
+  motorA.setPIDSpeed(-100);
+  motorB.setPIDSpeed(100);
+}
+
+void on_frame()
+{
+  motorA.loop();
+  motorB.loop();
+}
+
+void on_epidose()
+{
+  motorA.stop();
+  motorB.stop();
+}
+
+void on_debug()
+{
+  Serial.print("A=");
+  Serial.print(motorA.getCurrentSpeed());
+  Serial.print("\ti=");
+  Serial.print(motorA.getCurrentPosition());
+  Serial.print("\tB=");
+  Serial.print(motorB.getCurrentSpeed());
+  Serial.print("\ti=");
+  Serial.print(motorB.getCurrentPosition());
+  Serial.println();
 }
 
 void loop()
 {
-  motorA.loop();
-  motorB.loop();
-  
-  Serial.print("A=");
-  Serial.print(motorA.getCurrentSpeed());
-  Serial.print("\ti=");
-  Serial.print(motorA.interruptCounter_);
-  Serial.print("\tB=");
-  Serial.print(motorB.getCurrentSpeed());
-  Serial.print("\ti=");
-  Serial.print(motorB.interruptCounter_);
-  Serial.println();
+  now = millis();
+  if (now - frame_time > FRAME_INTERVAL)
+  {
+    on_frame();
+    frame_time = now;
+  }
 
-  delay(30);
+  if (now - episode_time > EPISODE_INTERVAL)
+  {
+    on_epidose();
+    episode_time = now;
+  }
+
+  if (now - debug_time > DEBUG_INTERVAL)
+  {
+    on_debug();
+    debug_time = now;
+  }
 }
 
 // `1500 int is one rev

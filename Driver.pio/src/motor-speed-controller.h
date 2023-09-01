@@ -3,20 +3,20 @@
 #define MOTOR_SPEED_CONTROLLER_H
 
 #include <Arduino.h>
+#include <Encoder.h>
 
 #define FORWARD 1
 #define BACKWARD 0
 
+#define MIN_PWM -255
 #define MAX_PWM 255
 
 class MotorSpeedController
 {
 public:
-    MotorSpeedController(uint8_t inPin1, uint8_t inPin2, uint8_t pwmPin);
+    MotorSpeedController(uint8_t inPin1, uint8_t inPin2, uint8_t pwmPin, uint8_t encoderPin1_, uint8_t encoderPin2_);
     void setup();
     void loop();
-
-    void incrementInterrupt();
 
     void setPIDSpeed(int speed);
 
@@ -26,12 +26,19 @@ public:
 
     int getCurrentSpeed();
 
+    long getCurrentPosition();
+
     void updatePIDParameters(int Kp, int Kd, int Ki, int Ko);
 
-    // private:
+private:
     uint8_t inPin1_;
     uint8_t inPin2_;
     uint8_t pwmPin_;
+
+    uint8_t encoderPin1_;
+    uint8_t encoderPin2_;
+
+    Encoder *encoder_;
 
     int Kp_;
     int Kd_;
@@ -39,11 +46,8 @@ public:
     int Ko_;
 
     bool pidControl_;
-    bool direction_;
 
-    unsigned long interruptCounter_;
-
-    unsigned long prevCount_;
+    long prevCount_;
 
     int prevInput_;
     int ITerm_;
