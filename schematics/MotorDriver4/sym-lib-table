@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "j_ProcessorBoards")(type "KiCad")(uri "/home/ali/Projects/robot-platform/schematics/FootPrints/j_ProcessorBoards.kicad_sym")(options "")(descr ""))
+  (lib (name "ProjectSymbols")(type "KiCad")(uri "${KIPRJMOD}/ProjectSymbols.kicad_sym")(options "")(descr ""))
+)

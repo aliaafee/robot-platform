@@ -9,8 +9,8 @@
 
 #define STBY 8
 
-#define AIN1 7
-#define AIN2 6
+#define AIN1 6
+#define AIN2 7
 #define PWMA 5
 
 

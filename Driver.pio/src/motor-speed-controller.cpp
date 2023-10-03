@@ -45,8 +45,13 @@ void MotorSpeedController::loop()
 void MotorSpeedController::setPIDSpeed(int speed)
 {
     pidControl_ = true;
-    resetPID();
     targetSpeed_ = speed;
+}
+
+void MotorSpeedController::stopPIDControl()
+{
+    pidControl_ = false;
+    resetPID();
 }
 
 void MotorSpeedController::setPWMSpeed(int pwm)
@@ -73,6 +78,11 @@ void MotorSpeedController::stop()
 int MotorSpeedController::getCurrentSpeed()
 {
     return currentSpeed_;
+}
+
+int MotorSpeedController::getCurrentPWM()
+{
+    return currentPWM_;
 }
 
 long MotorSpeedController::getCurrentPosition()
@@ -113,7 +123,7 @@ void MotorSpeedController::doPID()
     }
     else if (output <= MIN_PWM)
     {
-        output = 0;
+        output = MIN_PWM;
     }
     else
     {
@@ -129,6 +139,7 @@ void MotorSpeedController::doPID()
 void MotorSpeedController::setPWM(uint8_t pwm)
 {
     analogWrite(pwmPin_, pwm);
+    currentPWM_ = pwm;
 }
 
 void MotorSpeedController::setDirection(bool direction)

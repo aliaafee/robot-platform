@@ -1,0 +1,3 @@
+#!/usr/bin/zsh
+
+sshpass -p "rob.log" ssh rob@robotpi.local python /home/rob/RobotHttpNode/motor-node.py

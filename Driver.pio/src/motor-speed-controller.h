@@ -3,6 +3,7 @@
 #define MOTOR_SPEED_CONTROLLER_H
 
 #include <Arduino.h>
+
 #include <Encoder.h>
 
 #define FORWARD 1
@@ -20,17 +21,21 @@ public:
 
     void setPIDSpeed(int speed);
 
+    void stopPIDControl();
+
     void setPWMSpeed(int pwm);
 
     void stop();
 
     int getCurrentSpeed();
 
+    int getCurrentPWM();
+
     long getCurrentPosition();
 
     void updatePIDParameters(int Kp, int Kd, int Ki, int Ko);
 
-private:
+//private:
     uint8_t inPin1_;
     uint8_t inPin2_;
     uint8_t pwmPin_;
@@ -55,6 +60,8 @@ private:
 
     int currentSpeed_;
     int targetSpeed_;
+
+    int currentPWM_;
 
     void resetPID();
     void doPID();

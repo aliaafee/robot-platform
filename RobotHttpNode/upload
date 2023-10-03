@@ -1,0 +1,9 @@
+#!/usr/bin/zsh
+
+#sshpass -p "rob.log" scp motor-node.py rob@robotpi.local:/home/rob/RobotHttpNode/
+#sshpass -p "rob.log" scp camera-node.py rob@robotpi.local:/home/rob/RobotHttpNode/
+
+
+sshpass -p "rob.log" ssh rob@robotpi.local "rm -r /home/rob/RobotHttpNode/*"
+sshpass -p "rob.log" scp -pr httpnode rob@robotpi.local:/home/rob/RobotHttpNode/httpnode
+
