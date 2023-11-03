@@ -22,9 +22,6 @@ PAGE = """\
     const KEY_LEFT = 37;
     const KEY_RIGHT = 39;
 
-    var forwardSpeed = 150;
-    var turnSpeed = 100;
-
     var pressedKeys = {};
 
     async function setStatus(message) {
@@ -42,6 +39,9 @@ PAGE = """\
 
     async function processKeys() {
       var moving = true;
+
+      const forwardSpeed = document.getElementById('forward_speed').value;
+      const turnSpeed = document.getElementById('turn_speed').value;
 
       if (pressedKeys[KEY_UP]) {
         setStatus("Forward");
@@ -97,6 +97,8 @@ PAGE = """\
 
 <body>
   <h1>Motor Control</h1>
+  <div>Forward Speed: <input id="forward_speed" value ="150" type="number"/> </div>
+  <div>Turn Speed: <input id="turn_speed" value ="100" type="number"/> </div>
   <span id="status"></span>
 </body>
 

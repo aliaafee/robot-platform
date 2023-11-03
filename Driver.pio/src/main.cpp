@@ -48,9 +48,14 @@ void reset_episode()
   episode_time = millis();
 }
 
+void set_steering(int angle, int speed)
+{
+}
+
 #ifdef DEBUG_MESSAGES
 void on_debug()
 {
+  return;
   float rpm_a = (RPM_K * float(motorA.getCurrentSpeed())) / float(FRAME_INTERVAL);
   float rpm_b = (RPM_K * float(motorB.getCurrentSpeed())) / float(FRAME_INTERVAL);
 
@@ -106,9 +111,9 @@ int decodeByteCouple(byte char1, byte char2)
   return (char1 << 8) + char2;
 }
 
-void encodeByteCouple(int input, byte* out1, byte* out2)
+void encodeByteCouple(int input, byte *out1, byte *out2)
 {
-  *out1 = input>>8;
+  *out1 = input >> 8;
   *out2 = input & 0xFF;
 }
 
@@ -224,7 +229,7 @@ void wireRequestEvent()
   byte writeBuffer1 = 0xFF;
   byte writeBuffer2 = 0xFF;
 
-  //encodeByteCouple(FRAME_INTERVAL, &writeBuffer1, &writeBuffer2);
+  // encodeByteCouple(FRAME_INTERVAL, &writeBuffer1, &writeBuffer2);
   Wire.write(writeBuffer1);
   Wire.write(writeBuffer2);
 
@@ -267,6 +272,8 @@ void setup()
   // Initialize motors
   motorA.setup();
   motorB.setup();
+
+  // motorB.setReverse();
 
   // Stop the motors
   motorA.stop();

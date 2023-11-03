@@ -8,6 +8,8 @@ from base_node import BaseNodeHandler, BaseNode
 
 from nodes_list import nodes
 
+HOSTNAME = "robotpi.local"
+
 PAGE = """\
 <!DOCTYPE html>
 <html>
@@ -30,8 +32,16 @@ PAGE = """\
             const response = await fetch('/status');
             const result = await response.json();
             for (let node_name in result) {
+                const status = result[node_name];
                 const el = document.getElementById(node_name + "_status");
-                el.innerText = result[node_name]
+                el.innerText = status;
+
+                const url_el = document.getElementById(node_name + "_url");
+                if (status == 'running') {
+                    url_el.style.display = '';
+                } else {
+                    url_el.style.display = 'none';
+                }
             }
         }
         setInterval(updateStatus, 3000)
@@ -117,7 +127,7 @@ class GovernerNodeHandler(BaseNodeHandler):
 
     def handle_list(self, url):
         node_list = ' '.join(
-            [f"<li><span>{node_name}</span> <button onClick=\"startNode('{node_name}')\">start</button> <button onClick=\"stopNode('{node_name}')\">stop</button> <status id=\"{node_name}_status\"></status></li>" for node_name in available_nodes])
+            [f"<li><span>{node_name}</span> <button onClick=\"startNode('{node_name}')\">start</button> <button onClick=\"stopNode('{node_name}')\">stop</button> <status id=\"{node_name}_status\"></status> <a id=\"{node_name}_url\" href=\"http://{HOSTNAME}:{port}/\" style=\"display: none;\" target=\"_blank\">open</a></li>" for node_name, (port,_,_) in available_nodes.items()])
         self.send_text(PAGE.replace("{node_list}", node_list))
 
     def handle_status(self, url):

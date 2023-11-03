@@ -11,6 +11,8 @@ MotorSpeedController::MotorSpeedController(uint8_t inPin1, uint8_t inPin2, uint8
 
     encoder_ = new Encoder(encoderPin1_, encoderPin2_);
 
+    corrected_direction_ = 1;
+
     Kp_ = 20;
     Kd_ = 12;
     Ki_ = 0;
@@ -44,6 +46,8 @@ void MotorSpeedController::loop()
 
 void MotorSpeedController::setPIDSpeed(int speed)
 {
+    speed = speed * corrected_direction_;
+    Serial.println(speed);
     pidControl_ = true;
     targetSpeed_ = speed;
 }
@@ -56,6 +60,8 @@ void MotorSpeedController::stopPIDControl()
 
 void MotorSpeedController::setPWMSpeed(int pwm)
 {
+    pwm = pwm * corrected_direction_;
+
     if (pwm < 0)
     {
         setDirection(BACKWARD);
@@ -96,6 +102,11 @@ void MotorSpeedController::updatePIDParameters(int Kp, int Kd, int Ki, int Ko)
     Kd_ = Kd;
     Ki_ = Ki;
     Ko_ = Ko;
+}
+
+void MotorSpeedController::setReverse()
+{
+    corrected_direction_ = -1;
 }
 
 void MotorSpeedController::resetPID()

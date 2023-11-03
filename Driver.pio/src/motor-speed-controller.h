@@ -35,6 +35,8 @@ public:
 
     void updatePIDParameters(int Kp, int Kd, int Ki, int Ko);
 
+    void setReverse();
+
 //private:
     uint8_t inPin1_;
     uint8_t inPin2_;
@@ -44,6 +46,8 @@ public:
     uint8_t encoderPin2_;
 
     Encoder *encoder_;
+
+    int corrected_direction_;
 
     int Kp_;
     int Kd_;
