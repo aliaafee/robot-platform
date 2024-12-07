@@ -5,7 +5,7 @@
 
 #include "pin-config.h"
 
-#define DEBUG_MESSAGES
+// #define DEBUG_MESSAGES
 
 #define FRAME_INTERVAL 50
 #define EPISODE_INTERVAL 2000
@@ -19,9 +19,12 @@
 #define COMMAND_SET_SPEED 0x4D
 #define COMMAND_SET_PWM 0x50
 #define COMMAND_STOP 0x53
+#define COMMAND_SET_REGISTER 0xFF
 
 volatile byte currentCommand[COMMAND_LENGTH];
 volatile int commandCounter = 0;
+
+volatile int currentRegister = 0;
 
 unsigned long now;
 unsigned long frame_time;
@@ -31,10 +34,76 @@ unsigned long debug_time;
 MotorSpeedController motorA(AIN1, AIN2, PWMA, AENC1, AENC2);
 MotorSpeedController motorB(BIN1, BIN2, PWMB, BENC1, BENC2);
 
+volatile byte dataRegistery[8];
+
+int decodeByteInt(byte char1, byte char2)
+{
+  return (char1 << 8) + char2;
+}
+
+void encodeIntByte(int input, byte *out1, byte *out2)
+{
+  *out1 = input >> 8;
+  *out2 = input & 0xFF;
+}
+
+long decodeByteLong(byte char1, byte char2, byte char3, byte char4)
+{
+  return ((long)char1 << 24) |
+         ((long)char2 << 16) |
+         ((long)char3 << 8) |
+         (long)char4;
+}
+
+void encodeLongByte(long input, byte *out1, byte *out2, byte *out3, byte *out4)
+{
+  *out1 = (input >> 24) & 0xFF; // Most Significant Byte
+  *out2 = (input >> 16) & 0xFF;
+  *out3 = (input >> 8) & 0xFF;
+  *out4 = input & 0xFF; // Least Significant Byte
+}
+
+long decodeLong(byte (&arr)[4])
+{
+  return ((long)arr[0] << 24) |
+         ((long)arr[1] << 16) |
+         ((long)arr[2] << 8) |
+         (long)arr[3];
+}
+
+byte *encodeLong(long input)
+{
+  static byte result[4];
+  result[0] = (input >> 24) & 0xFF; // Most Significant Byte
+  result[1] = (input >> 16) & 0xFF;
+  result[2] = (input >> 8) & 0xFF;
+  result[3] = input & 0xFF; // Least Significant Byte
+  return result;
+}
+
 void on_frame()
 {
   motorA.loop();
   motorB.loop();
+
+  // Update the dataRegistery.
+  // Registers 0 to 3: MotorA position long encoded as 4 bytes
+  // Registers 4 to 7: MotorB position long encoded as 4 bytes
+
+  byte *motorPosition;
+  motorPosition = encodeLong(motorA.getCurrentPosition());
+
+  dataRegistery[0] = motorPosition[0];
+  dataRegistery[1] = motorPosition[1];
+  dataRegistery[2] = motorPosition[2];
+  dataRegistery[3] = motorPosition[3];
+
+  motorPosition = encodeLong(motorB.getCurrentPosition());
+
+  dataRegistery[4] = motorPosition[0];
+  dataRegistery[5] = motorPosition[1];
+  dataRegistery[6] = motorPosition[2];
+  dataRegistery[7] = motorPosition[3];
 }
 
 void on_episode()
@@ -55,7 +124,7 @@ void set_steering(int angle, int speed)
 #ifdef DEBUG_MESSAGES
 void on_debug()
 {
-  return;
+  // return;
   float rpm_a = (RPM_K * float(motorA.getCurrentSpeed())) / float(FRAME_INTERVAL);
   float rpm_b = (RPM_K * float(motorB.getCurrentSpeed())) / float(FRAME_INTERVAL);
 
@@ -106,23 +175,12 @@ void logcommandinput(volatile byte command[COMMAND_LENGTH], int length)
 }
 #endif
 
-int decodeByteCouple(byte char1, byte char2)
-{
-  return (char1 << 8) + char2;
-}
-
-void encodeByteCouple(int input, byte *out1, byte *out2)
-{
-  *out1 = input >> 8;
-  *out2 = input & 0xFF;
-}
-
 void commandSetSpeed(volatile byte command[COMMAND_LENGTH])
 {
   /*  M    255   255   255   255  */
   /*  0x4D 0x00  0x00  0x00  0x00 */
-  int motorASpeed = decodeByteCouple(command[2], command[3]);
-  int motorBSpeed = decodeByteCouple(command[4], command[5]);
+  int motorASpeed = decodeByteInt(command[2], command[3]);
+  int motorBSpeed = decodeByteInt(command[4], command[5]);
 
 #ifdef DEBUG_MESSAGES
   log("SetSpeed A=");
@@ -142,8 +200,8 @@ void commandSetPWM(volatile byte command[COMMAND_LENGTH])
 {
   /*  P    255   255   255   255  */
   /*  0x4D 0x00  0x00  0x00  0x00 */
-  int motorASpeed = decodeByteCouple(command[2], command[3]);
-  int motorBSpeed = decodeByteCouple(command[4], command[5]);
+  int motorASpeed = decodeByteInt(command[2], command[3]);
+  int motorBSpeed = decodeByteInt(command[4], command[5]);
 
 #ifdef DEBUG_MESSAGES
   log("SetPWM A=");
@@ -176,6 +234,13 @@ void commandStop(volatile byte command[COMMAND_LENGTH])
   motorB.stop();
 }
 
+void commandSetRegister(volatile byte command[COMMAND_LENGTH])
+{
+  /*  255  255   */
+  /*  0xFF 0x00  */
+  currentRegister = command[2];
+}
+
 void interpretCommand(volatile byte command[COMMAND_LENGTH], int length)
 {
 #ifdef DEBUG_MESSAGES
@@ -195,6 +260,10 @@ void interpretCommand(volatile byte command[COMMAND_LENGTH], int length)
 
   case COMMAND_STOP:
     commandStop(command);
+    break;
+
+  case COMMAND_SET_REGISTER:
+    commandSetRegister(command);
     break;
 
   default:
@@ -225,33 +294,8 @@ void wireRecieveEvent(int howMany)
 
 void wireRequestEvent()
 {
-  /* MotorAPos MotorASpeed FrameInterval MotorBPos MotorBSpeed FrameInterval*/
-  byte writeBuffer1 = 0xFF;
-  byte writeBuffer2 = 0xFF;
-
-  // encodeByteCouple(FRAME_INTERVAL, &writeBuffer1, &writeBuffer2);
-  Wire.write(writeBuffer1);
-  Wire.write(writeBuffer2);
-
-  // encodeByteCouple(motorA.getCurrentSpeed(), writeBuffer1, writeBuffer2);
-  // Wire.write(writeBuffer1);
-  // Wire.write(writeBuffer2);
-
-  // encodeByteCouple(FRAME_INTERVAL, writeBuffer1, writeBuffer2);
-  // Wire.write(writeBuffer1);
-  // Wire.write(writeBuffer2);
-
-  // encodeByteCouple(motorB.getCurrentPosition(), writeBuffer1, writeBuffer2);
-  // Wire.write(writeBuffer1);
-  // Wire.write(writeBuffer2);
-
-  // encodeByteCouple(motorB.getCurrentSpeed(), writeBuffer1, writeBuffer2);
-  // Wire.write(writeBuffer1);
-  // Wire.write(writeBuffer2);
-
-  // encodeByteCouple(FRAME_INTERVAL, writeBuffer1, writeBuffer2);
-  // Wire.write(writeBuffer1);
-  // Wire.write(writeBuffer2);
+  Serial.println(currentRegister);
+  Wire.write(dataRegistery[currentRegister]);
 }
 
 void setup()
@@ -278,6 +322,12 @@ void setup()
   // Stop the motors
   motorA.stop();
   motorB.stop();
+
+  reset_episode();
+
+#ifdef DEBUG_MESSAGES
+  log("Motor Speed Controller Started\n");
+#endif
 }
 
 void loop()
@@ -295,13 +345,13 @@ void loop()
     reset_episode();
   }
 
-#ifdef DEBUG_MESSAGES
-  if (now - debug_time > DEBUG_INTERVAL)
-  {
-    on_debug();
-    debug_time = now;
-  }
-#endif
+  // #ifdef DEBUG_MESSAGES
+  //   if (now - debug_time > DEBUG_INTERVAL)
+  //   {
+  //     on_debug();
+  //     debug_time = now;
+  //   }
+  // #endif
 }
 
 // `6000 int is one rev

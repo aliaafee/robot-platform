@@ -47,7 +47,6 @@ void MotorSpeedController::loop()
 void MotorSpeedController::setPIDSpeed(int speed)
 {
     speed = speed * corrected_direction_;
-    Serial.println(speed);
     pidControl_ = true;
     targetSpeed_ = speed;
 }
