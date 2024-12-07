@@ -5,6 +5,8 @@ adafruit-circuitpython-rgb-display==3.12.2
 adafruit-circuitpython-typing==1.9.5
 Adafruit-PlatformDetect==3.52.3
 Adafruit-PureIO==1.1.11
+AHRS==0.3.1
+numpy==1.26.2
 Pillow==10.0.1
 pyftdi==0.55.0
 pyserial==3.5

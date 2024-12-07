@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional
 from collections import deque
 
 
@@ -10,11 +10,21 @@ class Command:
 
 
 @dataclass
+class MotorControllerState:
+    motora_counter: int
+    motorb_counter: int
+
+
+@dataclass
 class Telemetry:
     time: float
+    message: str
     gyro: Tuple[float, float, float]
     accel: Tuple[float, float, float]
     mag: Tuple[float, float, float]
+    orientation: Optional[Tuple[float, float, float, float]] = None
+    orientation_angles: Optional[Tuple[float, float, float]] = None
+    motor_controller: Optional[MotorControllerState] = None
 
 
 class RobotState:

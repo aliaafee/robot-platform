@@ -35,7 +35,7 @@ class CameraRecorder():
             return
 
         self.recording = True
-        self.camera_thread = threading.Thread(target=self.camera_worker)
+        self.camera_thread = threading.Thread(target=self.camera_worker, name="CameraRecorderThread")
         self.camera_thread.start()
 
     def camera_worker(self):

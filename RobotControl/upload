@@ -4,6 +4,9 @@
 #sshpass -p "rob.log" scp camera-node.py rob@robotpi.local:/home/rob/RobotHttpNode/
 
 
-sshpass -p "rob.log" ssh rob@robotpi.local "rm -r /home/rob/Control.py/"
-sshpass -p "rob.log" rsync -pr --exclude="__pycache__" Control.py/* rob@robotpi.local:/home/rob/Control.py/
+# sshpass -p "rob.log" ssh rob@robotpi.local "rm -r /home/rob/Control.py/"
+# sshpass -p "rob.log" rsync -pr --exclude="__pycache__" Control.py/* rob@robotpi.local:/home/rob/Control.py/
+
+sshpass -p "ali.log" ssh ali@mydeck.local "rm -r /home/ali/Control.py/"
+sshpass -p "ali.log" rsync -pr --exclude="__pycache__" Control.py/* ali@mydeck.local:/home/ali/Control.py/
 

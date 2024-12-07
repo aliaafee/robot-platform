@@ -22,7 +22,7 @@ class ControlServer():
             (host, port), create_handler(robot_state=robot_state, camera_recorder=self.camera_recorder))
 
     def start(self, join=False):
-        self.server_thread = threading.Thread(target=self.server_worker)
+        self.server_thread = threading.Thread(target=self.server_worker, name="ControlServerThread")
 
         self.server_thread.start()
 

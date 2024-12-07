@@ -36,18 +36,24 @@ PAGE = """\
     async function processKeys() {
       var moving = true;
 
-      const forwardSpeed = document.getElementById('forward_speed').value;
+      // const forwardSpeed = document.getElementById('forward_speed').value;
       const turnSpeed = document.getElementById('turn_speed').value;
+
+      const a_speed = document.getElementById('a_speed').value;
+      const factor = document.getElementById('factor').value;
+      const b_speed = Math.round(a_speed * factor);
+      document.getElementById('b_speed').value = b_speed
+
 
       if (pressedKeys[KEY_UP]) {
         setStatus("Forward");
-        setMotorSpeed(forwardSpeed, -forwardSpeed);
+        setMotorSpeed(a_speed, -b_speed);
         return;
       }
 
       if (pressedKeys[KEY_DOWN]) {
         setStatus("Backward");
-        setMotorSpeed(-forwardSpeed, forwardSpeed);
+        setMotorSpeed(-a_speed, b_speed);
         return;
       }
 
@@ -75,6 +81,12 @@ PAGE = """\
       processKeys();
     }
 
+    async function getTelemetry() {
+        const response = await fetch('/telemetry');
+        const telemetry = await response.json();
+        return telemetry;
+    }
+
     async function onKeyUp(e) {
       pressedKeys[e.keyCode] = false;
       processKeys();
@@ -84,19 +96,85 @@ PAGE = """\
       processKeys();
     }
 
+    async function monitor_loop() {
+      
+
+      const telemetry = await getTelemetry();
+      const x_rot = telemetry['orientation_angles'][0] * 180 / Math.PI;
+      const y_rot = telemetry['orientation_angles'][1] * 180 / Math.PI;
+      const z_rot = telemetry['orientation_angles'][2] * 180 / Math.PI;
+
+      const heading = z_rot + 180;
+      const compass_elem = document.getElementById('compass');
+      compass_elem.setAttribute('transform', `translate(50, 50) rotate(${heading} 0 0)`);
+
+      const heading_elem = document.getElementById('heading');
+      heading_elem.innerText = Math.round(heading);
+
+      const motor_elem = document.getElementById('motor');
+      if (telemetry['motor_controller']!== "none") {
+        motor_elem.innerText = "motora_position=" + telemetry['motor_controller']['motora_counter'] + ", motorb_position=" + telemetry['motor_controller']['motorb_counter'];
+      }
+
+      const message_elem = document.getElementById('message');
+      message_elem.innerText = telemetry['message'];
+    }
+
+    async function onStartStream() {
+        await fetch("/start_camera_stream");
+
+        setTimeout(() => {
+            const img_stream = document.getElementById('img-stream');
+            img_stream.src = `/camera_stream.mjpg?${Date.now()}`;
+        }, 1000)
+
+        
+    }
+
+    async function onStopStream() {
+        await fetch("/stop_camera_stream");
+
+        setTimeout(() => {
+            const img_stream = document.getElementById('img-stream');
+            img_stream.src = `/nothing`;
+        }, 1000)
+    }
+
     document.addEventListener('keyup', onKeyUp);
     document.addEventListener('keydown', onKeyDown);
     setInterval(loop, 1000);
+    setInterval(monitor_loop, 100);
 
   </script>
 </head>
 
 <body>
   <h1>Remote Control</h1>
-  <img src="camera_stream.mjpg" width="640" height="480" />
-  <div>Forward Speed: <input id="forward_speed" value ="150" type="number"/> </div>
-  <div>Turn Speed: <input id="turn_speed" value ="100" type="number"/> </div>
-  <span id="status"></span>
+  <img id="img-stream" onClick="onImageStreamClick()" src="/nothing" width="640" height="480" />
+  <button onClick="onStartStream()">Start Camera Stream</button>
+  <button onClick="onStopStream()">Stop Camera Stream</button>
+  <!-- <div>Forward Speed: <input id="forward_speed" value ="150" type="number"/> </div> -->
+  <div>Turn Speed: <input id="turn_speed" value ="20" type="number"/> </div>
+  <div> A Speed: <input id="a_speed" type="number" value="20"> </div>
+  <div> Factor: <input id="factor" type="number" value="1"> </div>
+  <div> B Speed: <input id="b_speed" type="number" value="150" disabled> </div>
+
+  <div id="telemetry">
+    <div>
+      <div>Heading:<span id="heading"></span></div>
+      <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <polygon id="compass" points="-10,10 0,-10, 10,10 0,0" transform="" fill="red"/>
+      </svg>
+    </div>
+    <div>
+      <div>Motor Stat:<span id="motor"></span></div>
+      <div>Message:<span id="message"></span></div>
+    </div>
+  </div>
+
+  <div id="status_bar">
+    <span id="status"></span>
+  </div>
 </body>
 
 </html>
@@ -105,8 +183,8 @@ PAGE = """\
 
 class BaseControlHTTTPHandler(server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        logging.info(
-            f"{self.client_address[0]}:{self.client_address[1]} {' '.join(args)}")
+        logging.debug(
+            f"{self.client_address[0]}:{self.client_address[1]} {' '.join([str(a) for a in args])}")
 
     def send_text(self, text):
         content = text.encode('utf-8')
@@ -156,22 +234,27 @@ def create_handler(robot_state: RobotState, camera_recorder: CameraRecorder):
         def handle_GET(self, url):
             if url.path == '/':
                 self.send_redirect('/index.html')
-            elif url.path == '/index.html':
-                self.send_text(PAGE)
-            elif url.path == '/telemetry':
-                self.handle_telemetry(url)
-            elif url.path == '/set_motor_speed':
-                self.handle_set_motor_speed(url)
-            elif url.path == '/stop_motors':
-                self.handle_stop_motors(url)
-            elif url.path == '/start_camera_stream':
-                camera_recorder.start_recording()
-            elif url.path == '/stop_camera_stream':
-                camera_recorder.stop_recording()
-            elif url.path == '/camera_stream.mjpg':
-                self.handle_camera_stream(url)
-            else:
+                return
+
+            url_map = {
+                '/index.html': self.handle_index,
+                '/telemetry': self.handle_telemetry,
+                '/set_motor_speed': self.handle_set_motor_speed,
+                '/set_steering': self.handle_set_steering,
+                '/stop_motors': self.handle_stop_motors,
+                '/start_camera_stream': self.handle_start_camera_stream,
+                '/stop_camera_stream': self.handle_stop_camera_stream,
+                '/camera_stream.mjpg': self.handle_camera_stream
+            }
+
+            if url.path not in url_map:
                 self.send_notfound()
+                return
+
+            url_map[url.path](url)
+
+        def handle_index(self, url):
+            self.send_text(PAGE)
 
         def handle_telemetry(self, url):
             self.send_json(robot_state.get_telemetry_asdict())
@@ -206,6 +289,42 @@ def create_handler(robot_state: RobotState, camera_recorder: CameraRecorder):
             self.send_json(
                 {
                     'status': 'stop_motors command queued'
+                }
+            )
+
+        def handle_set_steering(self, url):
+            speed = 0
+            angle = 0
+
+            q = parse_qs(url.query)
+            if 'speed' in q:
+                speed = float(q['speed'][0])
+            if 'angle' in q:
+                angle = float(q['angle'][0])
+
+            robot_state.push_command(
+                Command('set_steering', (speed, angle))
+            )
+
+            self.send_json(
+                {
+                    'status': 'set_steering command queued'
+                }
+            )
+
+        def handle_start_camera_stream(self, url):
+            camera_recorder.start_recording()
+            self.send_json(
+                {
+                    'status': 'start recording'
+                }
+            )
+
+        def handle_stop_camera_stream(self, url):
+            camera_recorder.stop_recording()
+            self.send_json(
+                {
+                    'status': 'stop recording'
                 }
             )
 
