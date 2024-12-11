@@ -2,18 +2,6 @@ from smbus2 import SMBus
 import time
 import math
 import logging
-# import ahrs
-# from ahrs.common.orientation import acc2q, q2euler
-# import numpy
-
-# from PIL import Image, ImageDraw
-# import digitalio
-# import board
-# from adafruit_rgb_display.rgb import color565
-
-# import display_controller
-# import l3gd20
-# import lsm303
 import motor_controller
 from robot_state import Command, Telemetry, RobotState, MotorControllerState
 
@@ -31,7 +19,7 @@ class Bus:
 
 
 class RobotController:
-    def __init__(self, frequency, state) -> None:
+    def __init__(self, frequency, state: RobotState) -> None:
         self.state = state
 
         self.bus = Bus(i2c_busid=1)
@@ -53,6 +41,7 @@ class RobotController:
         start_time = time.time()
 
         try:
+
             self.bus.open_i2c()
 
             self.current_telemetry = Telemetry(
@@ -73,6 +62,7 @@ class RobotController:
             self.on_frame()
 
             self.bus.close_i2c()
+
         except OSError as e:
             logging.error(f"Error in RobotController Loop: {e.strerror}")
 
@@ -84,15 +74,14 @@ class RobotController:
                 mag=(1, 0, 0),
                 orientation=(0, 0, 0, 0),
                 orientation_angles=(0, 0, 0),
-                motor_controller=MotorControllerState(0, 0)
+                motor_controller=MotorControllerState(0, 0, 0, 0)
             )
 
             self.state.push_telemetry(self.current_telemetry)
 
-        try:
-            time.sleep(self.frame_duration - (time.time() - start_time))
-        except ValueError:
-            pass
+        sleeptime = self.frame_duration - (time.time() - start_time)
+        if sleeptime > 0:
+            time.sleep(sleeptime)
 
     def set_steering(self, speed: float, angle: float) -> None:
         if angle == 0:

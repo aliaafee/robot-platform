@@ -13,6 +13,8 @@ class Command:
 class MotorControllerState:
     motora_counter: int
     motorb_counter: int
+    motora_speed: int
+    motorb_speed: int
 
 
 @dataclass

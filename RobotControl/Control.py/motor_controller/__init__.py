@@ -14,10 +14,18 @@ class MotorController():
     def __init__(self, bus) -> None:
         self._bus = bus
 
-    def encode_int_char_couple(self, value: int) -> Tuple[int, int]:
+    def encode_int(self, value: int) -> Tuple[int, int]:
         char1 = (value >> 8) & 0xFF
         char2 = value & 0xFF
         return char1, char2
+
+    def decode_int(self, bytes: Tuple) -> int:
+        value = (bytes[0] << 8) | bytes[1]
+
+        if value & (1 << 15):  # Check if the sign bit is set
+            value -= 1 << 16
+
+        return value
 
     def decode_long(self, bytes: Tuple) -> int:
         value = (
@@ -32,8 +40,8 @@ class MotorController():
         return value
 
     def set_motor_speed(self, motora: int, motorb: int) -> None:
-        speed_a = self.encode_int_char_couple(motora)
-        speed_b = self.encode_int_char_couple(motorb)
+        speed_a = self.encode_int(motora)
+        speed_b = self.encode_int(motorb)
 
         self._bus.i2c.write_i2c_block_data(
             MOTOR_ADDRESS, 0,
@@ -47,8 +55,8 @@ class MotorController():
         )
 
     def set_motor_pwm(self, motora: int, motorb: int) -> None:
-        speed_a = self.encode_int_char_couple(motora)
-        speed_b = self.encode_int_char_couple(motorb)
+        speed_a = self.encode_int(motora)
+        speed_b = self.encode_int(motorb)
 
         self._bus.i2c.write_i2c_block_data(
             MOTOR_ADDRESS, 0,
@@ -83,5 +91,12 @@ class MotorController():
                 self.read_register(4),
                 self.read_register(5),
                 self.read_register(6),
-                self.read_register(7)))
+                self.read_register(7))),
+            motora_speed=self.decode_int((
+                self.read_register(8),
+                self.read_register(9))),
+            motorb_speed=self.decode_int((
+                self.read_register(10),
+                self.read_register(11)))
+
         )

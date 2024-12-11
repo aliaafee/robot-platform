@@ -29,6 +29,12 @@ logging.basicConfig(level=logging.ERROR,
 #         print(new_steering_angle)
 #         self.set_steering(100, new_steering_angle)
 
+class ForwardRobot(RobotController):
+    def on_frame(self):
+        # self.state.push_command('set_motor_speed', (10, 10))
+        self.motor.set_motor_speed(50, 50)
+
+
 def app_license():
     """ App license """
     print("Robot Control")
@@ -71,9 +77,8 @@ def main(argv):
     remote_control_server.start()
     # remote_control_server.camera_recorder.start_recording()
 
-    robot = RobotController(frequency=10, state=state)
-
-    # robot.set_steering(100,-90)
+    robot = RobotController(frequency=30, state=state)
+    # robot = ForwardRobot(frequency=30, state=state)
 
     try:
         while True:

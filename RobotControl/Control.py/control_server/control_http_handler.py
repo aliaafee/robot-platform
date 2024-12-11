@@ -113,7 +113,7 @@ PAGE = """\
 
       const motor_elem = document.getElementById('motor');
       if (telemetry['motor_controller']!== "none") {
-        motor_elem.innerText = "motora_position=" + telemetry['motor_controller']['motora_counter'] + ", motorb_position=" + telemetry['motor_controller']['motorb_counter'];
+        motor_elem.innerText = telemetry['time'] + " ,motora_speed"+ telemetry['motor_controller']['motora_speed'] + ", motora_position=" + telemetry['motor_controller']['motora_counter'] + ", motorb_speed"+ telemetry['motor_controller']['motorb_speed'] + ", motorb_position=" + telemetry['motor_controller']['motorb_counter'];
       }
 
       const message_elem = document.getElementById('message');
