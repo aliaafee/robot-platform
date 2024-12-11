@@ -21,10 +21,10 @@
 #define COMMAND_STOP 0x53
 #define COMMAND_SET_REGISTER 0xFF
 
+#define DATA_REGISTERY_SIZE 12
+
 volatile byte currentCommand[COMMAND_LENGTH];
 volatile int commandCounter = 0;
-
-volatile int currentRegister = 0;
 
 unsigned long now;
 unsigned long frame_time;
@@ -34,33 +34,18 @@ unsigned long debug_time;
 MotorSpeedController motorA(AIN1, AIN2, PWMA, AENC1, AENC2);
 MotorSpeedController motorB(BIN1, BIN2, PWMB, BENC1, BENC2);
 
-volatile byte dataRegistery[8];
+volatile byte dataRegistery[DATA_REGISTERY_SIZE];
+volatile int currentRegister = 0;
 
-int decodeByteInt(byte char1, byte char2)
+int decodeInt(byte char0, byte char1)
 {
-  return (char1 << 8) + char2;
+  return (char0 << 8) + char1;
 }
 
-void encodeIntByte(int input, byte *out1, byte *out2)
+void encodeInt(int input, volatile byte *out0, volatile byte *out1)
 {
-  *out1 = input >> 8;
-  *out2 = input & 0xFF;
-}
-
-long decodeByteLong(byte char1, byte char2, byte char3, byte char4)
-{
-  return ((long)char1 << 24) |
-         ((long)char2 << 16) |
-         ((long)char3 << 8) |
-         (long)char4;
-}
-
-void encodeLongByte(long input, byte *out1, byte *out2, byte *out3, byte *out4)
-{
-  *out1 = (input >> 24) & 0xFF; // Most Significant Byte
-  *out2 = (input >> 16) & 0xFF;
-  *out3 = (input >> 8) & 0xFF;
-  *out4 = input & 0xFF; // Least Significant Byte
+  *out0 = input >> 8;
+  *out1 = input & 0xFF;
 }
 
 long decodeLong(byte (&arr)[4])
@@ -71,14 +56,12 @@ long decodeLong(byte (&arr)[4])
          (long)arr[3];
 }
 
-byte *encodeLong(long input)
+void encodeLong(long input, volatile byte *out0, volatile byte *out1, volatile byte *out2, volatile byte *out3)
 {
-  static byte result[4];
-  result[0] = (input >> 24) & 0xFF; // Most Significant Byte
-  result[1] = (input >> 16) & 0xFF;
-  result[2] = (input >> 8) & 0xFF;
-  result[3] = input & 0xFF; // Least Significant Byte
-  return result;
+  *out0 = (input >> 24) & 0xFF; // Most Significant Byte
+  *out1 = (input >> 16) & 0xFF;
+  *out2 = (input >> 8) & 0xFF;
+  *out3 = input & 0xFF; // Least Significant Byte
 }
 
 void on_frame()
@@ -89,21 +72,28 @@ void on_frame()
   // Update the dataRegistery.
   // Registers 0 to 3: MotorA position long encoded as 4 bytes
   // Registers 4 to 7: MotorB position long encoded as 4 bytes
+  // Registers 8 to 9: MotorA speed int encoded as 2 bytes
+  // Registers 10 to 11: MotorB speed int encoded as 2 bytes
 
-  byte *motorPosition;
-  motorPosition = encodeLong(motorA.getCurrentPosition());
+  encodeLong(motorA.getCurrentPosition(),
+             dataRegistery + 0,
+             dataRegistery + 1,
+             dataRegistery + 2,
+             dataRegistery + 3);
 
-  dataRegistery[0] = motorPosition[0];
-  dataRegistery[1] = motorPosition[1];
-  dataRegistery[2] = motorPosition[2];
-  dataRegistery[3] = motorPosition[3];
+  encodeLong(motorB.getCurrentPosition(),
+             dataRegistery + 4,
+             dataRegistery + 5,
+             dataRegistery + 6,
+             dataRegistery + 7);
 
-  motorPosition = encodeLong(motorB.getCurrentPosition());
+  encodeInt(motorA.getCurrentSpeed(),
+            dataRegistery + 8,
+            dataRegistery + 9);
 
-  dataRegistery[4] = motorPosition[0];
-  dataRegistery[5] = motorPosition[1];
-  dataRegistery[6] = motorPosition[2];
-  dataRegistery[7] = motorPosition[3];
+  encodeInt(motorB.getCurrentSpeed(),
+            dataRegistery + 10,
+            dataRegistery + 11);
 }
 
 void on_episode()
@@ -121,74 +111,12 @@ void set_steering(int angle, int speed)
 {
 }
 
-#ifdef DEBUG_MESSAGES
-void on_debug()
-{
-  // return;
-  float rpm_a = (RPM_K * float(motorA.getCurrentSpeed())) / float(FRAME_INTERVAL);
-  float rpm_b = (RPM_K * float(motorB.getCurrentSpeed())) / float(FRAME_INTERVAL);
-
-  Serial.print("A=");
-  Serial.print(motorA.getCurrentSpeed());
-  Serial.print(",\t");
-  Serial.print(rpm_a);
-  Serial.print("rpm,\tpwm ");
-  Serial.print(motorA.getCurrentPWM());
-  Serial.print("\ti=");
-  Serial.print(motorA.getCurrentPosition());
-  Serial.print("\tB=");
-  Serial.print(motorB.getCurrentSpeed());
-  Serial.print("\t");
-  Serial.print(rpm_b);
-  Serial.print("rpm,\tpwm ");
-  Serial.print(motorB.getCurrentPWM());
-  Serial.print("\ti=");
-  Serial.print(motorB.getCurrentPosition());
-  Serial.println();
-}
-
-void log(String message)
-{
-  Serial.print(message);
-}
-
-void log(int value)
-{
-  Serial.print(value);
-}
-
-void logln()
-{
-  Serial.println();
-}
-
-void logcommandinput(volatile byte command[COMMAND_LENGTH], int length)
-{
-  Serial.print("Command=");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print("0x");
-    Serial.print(command[i], HEX);
-    Serial.print("\t");
-  }
-  Serial.println();
-}
-#endif
-
 void commandSetSpeed(volatile byte command[COMMAND_LENGTH])
 {
   /*  M    255   255   255   255  */
   /*  0x4D 0x00  0x00  0x00  0x00 */
-  int motorASpeed = decodeByteInt(command[2], command[3]);
-  int motorBSpeed = decodeByteInt(command[4], command[5]);
-
-#ifdef DEBUG_MESSAGES
-  log("SetSpeed A=");
-  log(motorASpeed);
-  log("\tB=");
-  log(motorBSpeed);
-  logln();
-#endif
+  int motorASpeed = decodeInt(command[2], command[3]);
+  int motorBSpeed = decodeInt(command[4], command[5]);
 
   reset_episode();
 
@@ -200,16 +128,8 @@ void commandSetPWM(volatile byte command[COMMAND_LENGTH])
 {
   /*  P    255   255   255   255  */
   /*  0x4D 0x00  0x00  0x00  0x00 */
-  int motorASpeed = decodeByteInt(command[2], command[3]);
-  int motorBSpeed = decodeByteInt(command[4], command[5]);
-
-#ifdef DEBUG_MESSAGES
-  log("SetPWM A=");
-  log(motorASpeed);
-  log("\tB=");
-  log(motorBSpeed);
-  logln();
-#endif
+  int motorASpeed = decodeInt(command[2], command[3]);
+  int motorBSpeed = decodeInt(command[4], command[5]);
 
   reset_episode();
 
@@ -225,11 +145,6 @@ void commandStop(volatile byte command[COMMAND_LENGTH])
   /*  S   */
   /* 0x53 */
 
-#ifdef DEBUG_MESSAGES
-  log("Stopping");
-  logln();
-#endif
-
   motorA.stop();
   motorB.stop();
 }
@@ -238,15 +153,15 @@ void commandSetRegister(volatile byte command[COMMAND_LENGTH])
 {
   /*  255  255   */
   /*  0xFF 0x00  */
+  if (int(command[2]) > DATA_REGISTERY_SIZE - 1)
+  {
+    return;
+  }
   currentRegister = command[2];
 }
 
 void interpretCommand(volatile byte command[COMMAND_LENGTH], int length)
 {
-#ifdef DEBUG_MESSAGES
-  logcommandinput(command, length);
-#endif
-
   switch (command[1])
   {
 
@@ -267,10 +182,6 @@ void interpretCommand(volatile byte command[COMMAND_LENGTH], int length)
     break;
 
   default:
-#ifdef DEBUG_MESSAGES
-    log("Invalid Command");
-    logln();
-#endif
     break;
   }
 }
@@ -300,10 +211,6 @@ void wireRequestEvent()
 
 void setup()
 {
-#ifdef DEBUG_MESSAGES
-  Serial.begin(9600);
-#endif
-
   Wire.begin(DEVICE_ID);
 
   Wire.onReceive(wireRecieveEvent);
@@ -317,17 +224,11 @@ void setup()
   motorA.setup();
   motorB.setup();
 
-  // motorB.setReverse();
-
   // Stop the motors
   motorA.stop();
   motorB.stop();
 
   reset_episode();
-
-#ifdef DEBUG_MESSAGES
-  log("Motor Speed Controller Started\n");
-#endif
 }
 
 void loop()
@@ -345,13 +246,8 @@ void loop()
     reset_episode();
   }
 
-  // #ifdef DEBUG_MESSAGES
-  //   if (now - debug_time > DEBUG_INTERVAL)
-  //   {
-  //     on_debug();
-  //     debug_time = now;
-  //   }
-  // #endif
+  // Wait a little to ensure i2c bus does not fail
+  delay(1);
 }
 
 // `6000 int is one rev
